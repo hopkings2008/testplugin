@@ -6,10 +6,6 @@ StoragePlugin::StoragePlugin() {
 }
 
 StoragePlugin::~StoragePlugin() {
-	std::map<std::string, PluginFactory *>::iterator itr = m_factory.begin();
-	for(; itr != m_factory.end(); itr++) {
-		delete itr->second;
-	}
 }
 
 int StoragePlugin::init() {
@@ -18,11 +14,8 @@ int StoragePlugin::init() {
 		"ak",
 		"sk",
 	};
-	m_factory.insert(std::pair<std::string, PluginFactory *>("/v2/img/{id}", new PluginOssFactory(param)));
-	for(std::map<std::string, PluginFactory *>::iterator itr = m_factory.begin(); itr != m_factory.end(); itr++) {
-		m_router.addRoute(itr->first, itr->second);
-	}
-	return m_router.create();
+	m_router.addRoute("v2/img", new PluginOssFactory(param));
+	return 0;
 }
 
 void StoragePlugin::handleReadRequestHeadersPreRemap(atscppapi::Transaction &txn) {
@@ -32,9 +25,6 @@ void StoragePlugin::handleReadRequestHeadersPreRemap(atscppapi::Transaction &txn
 	if(path.length() == 0){
 		txn.resume();
 		return;
-	}
-	if(path[0] != '/') {
-		path = std::string("/") + path;
 	}
 	PluginFactory *factory = m_router.match(path);
 	if(!factory) {

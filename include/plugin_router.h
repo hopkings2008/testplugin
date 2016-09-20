@@ -2,7 +2,7 @@
 #define PLUGIN_ROUTER_H
 
 #include <string>
-#include <r3/r3.h>
+#include <radix_tree/radix_tree.hpp>
 #include <plugin_factory.h>
 
 class PluginRouter {
@@ -10,11 +10,10 @@ class PluginRouter {
 		PluginRouter(const int nodeNum = 10);
 		virtual ~PluginRouter();
 		void addRoute(const std::string &path, PluginFactory *factory);
-		int create();
 		PluginFactory *match(const std::string &path);
 
 	protected:
-		R3Node *m_router;
+		radix_tree<std::string, PluginFactory *> m_router;
 };
 
 #endif
