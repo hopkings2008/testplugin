@@ -8,8 +8,8 @@ class Base64 {
 	public:
 		Base64();
 		~Base64();
-		std::string encode(const std::vector<char> &input);
-		std::vector<char> decode(const std::string &input);
+		std::string encode(const std::vector<unsigned char> &input);
+		std::vector<unsigned char> decode(const std::string &input);
 };
 
 #endif

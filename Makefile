@@ -18,7 +18,7 @@ OBJS=$(patsubst %.cc,%.o,$(SOURCES))
 
 #LIBS=-Wl,-Bstatic -lgtest -lgmock -Wl,-Bdynamic -lstdc++ -lpthread -lc
 
-LIBS=-latscppapi -ltsutil -laprutil-1 -lapr-1 -lcrypto -lr3 -lstdc++ -lpthread -lc
+LIBS=-latscppapi -ltsutil -laprutil-1 -lapr-1 -lcrypto -lstdc++ -lpthread -lc
 
 all: $(TARGET)
 	@echo "build successfully. $(TARGET) has been generated."
