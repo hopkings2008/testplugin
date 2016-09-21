@@ -1,6 +1,7 @@
 #include <sstream>
 #include <oss_put.h>
 #include <oss_auth.h>
+#include <oss_response.h>
 
 OssPut::OssPut(atscppapi::Transaction &txn, const OSS_PARAM &param): PluginOss(txn, param) {
 }
@@ -31,5 +32,13 @@ void OssPut::handleSendRequestHeaders(atscppapi::Transaction &txn) {
 	urlSrv.setPath(resource);
 	hdrsSrv.set("Authorization", authStr);
 	//encrypt return url here. and hook response.
+    Base64 base64;
+    std::string resourceEnc = pathEncrypt(g_crypto, base64, path.str());
+    if(resourceEnc.length() == 0) {
+        txn.error("failed to encrypt path");
+        return;
+    }
+    std::string respBody = std::string("{ \"url_path\": \"") + resourceEnc + std::string("\"}");
+    txn.addPlugin(new OssResponse(txn, respBody));
 	txn.resume();
 }

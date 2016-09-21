@@ -2,6 +2,7 @@
 #include <plugin_oss.h>
 #include <atscppapi/shared_ptr.h>
 #include <auth_user.h>
+#include <log.h>
 
 PluginOss::PluginOss(atscppapi::Transaction &txn, const OSS_PARAM &param): atscppapi::TransactionPlugin(txn), m_obj(param.obj), m_bucket(param.bucket),
 	m_ak(param.ak), m_sk(param.sk) {
@@ -41,6 +42,31 @@ std::string PluginOss::getClientContentType(atscppapi::ClientRequest &req) {
 std::string PluginOss::getClientDate(atscppapi::ClientRequest &req) {
 	atscppapi::Headers &hdrs = req.getHeaders();
 	return hdrs.values("Date");
+}
+
+std::string PluginOss::pathEncrypt(const Crypto &crypto, const Base64 &base64, const std::string &oss_path){
+    std::vector<unsigned char> cipher;
+    int ret = crypto.encrypt(oss_path, cipher);
+    if (ret != 0) {
+        LOG_ERROR(log, "failed to encrypt path: %s", oss_path.c_str()) ;
+        return "";
+    }
+    return base64.encode(cipher);
+}
+
+std::string PluginOss::pathDecrypt(const Crypto &crypto, const Base64 &base64, const std::string &oss_path) {
+    std::vector<unsigned char> cipher = base64.decode(oss_path);
+    std::string plain;
+    if(cipher.size() == 0) {
+        LOG_ERROR(log, "base64 decode failed for invalid oss_path: %s", oss_path.c_str());
+        return "";
+    }
+    int ret = crypto.decrypt(cipher, plain);
+    if (ret != 0) {
+        LOG_ERROR(log, "failed to decrypt for invalid oss_path: %s", oss_path.c_str());
+        return "";
+    }
+    return plain;
 }
 
 PluginOssFactory::PluginOssFactory(const OSS_PARAM &param): m_bucket(param.bucket), m_ak(param.ak), m_sk(param.sk)

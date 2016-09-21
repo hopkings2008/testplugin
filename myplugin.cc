@@ -1,5 +1,7 @@
 #include <myplugin.h>
 #include <plugin_oss.h>
+#include <log.h>
+#include <crypto.h>
 
 StoragePlugin::StoragePlugin() {
 	registerHook(atscppapi::Plugin::HOOK_READ_REQUEST_HEADERS_PRE_REMAP);
@@ -37,6 +39,10 @@ void StoragePlugin::handleReadRequestHeadersPreRemap(atscppapi::Transaction &txn
 }
 
 void TSPluginInit(int argc ATSCPPAPI_UNUSED, const char *argv[] ATSCPPAPI_UNUSED) {
+    log.init("StoragePlugin", true, true, atscppapi::Logger::LOG_LEVEL_DEBUG, true, 300);
+    log.setRollingEnabled(true);
+    log.setRollingIntervalSeconds(300);
+    g_crypto.init("#!shiqichuban123", "@salt", "!@shiqichuban456");
 	StoragePlugin *plugin = new StoragePlugin();
 	plugin->init();
 }

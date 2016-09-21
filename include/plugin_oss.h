@@ -4,6 +4,8 @@
 #include <string>
 #include <atscppapi/TransactionPlugin.h>
 #include <plugin_factory.h>
+#include <crypto.h>
+#include <base64.h>
 
 typedef struct _OSS_PARAM{
 	std::string obj;
@@ -26,6 +28,8 @@ class PluginOss: public atscppapi::TransactionPlugin
 		std::string getClientContentMd5(atscppapi::ClientRequest &req);
 		std::string getClientContentType(atscppapi::ClientRequest &req);
 		std::string getClientDate(atscppapi::ClientRequest &req);
+        std::string pathEncrypt(const Crypto &crypto, const Base64 &base64, const std::string &oss_path);
+        std::string pathDecrypt(const Crypto &crypto, const Base64 &base64, const std::string &oss_path);
 
 	protected:
 		std::string m_obj;
