@@ -1,5 +1,11 @@
 .PHONY: all clean
 
+BASE=$(shell pwd)
+
+ROOT=$(shell pwd)/..
+
+AUTH=/home/zouyu/hopkings/cis_gw_ats_plugin/auth
+
 TARGET=libtest_plugin.so
 
 SOURCES=$(wildcard *.cc)
@@ -8,7 +14,7 @@ HEADERS=$(wildcard *.h)
 
 CFLAGS=-D_REENTRANT -DUSE_STD_SHARED_PTR -DHAVE_STD_SHARED_PTR -Wall -Werror -g -O0 -Wint-to-pointer-cast -fPIC -std=c++11
 
-CXXFLAGS=-I./include -I/home/sq/include
+CXXFLAGS=-I./include -I$(AUTH)/include -I/home/sq/include
 
 LDFLAGS=-shared -Wl,-rpath,/home/sq/lib
 

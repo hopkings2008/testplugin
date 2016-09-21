@@ -10,7 +10,7 @@ class PluginRouter {
 		PluginRouter(const int nodeNum = 10);
 		virtual ~PluginRouter();
 		void addRoute(const std::string &path, PluginFactory *factory);
-		PluginFactory *match(const std::string &path);
+		int match(const std::string &path, std::string &root, PluginFactory *&factory);
 
 	protected:
 		radix_tree<std::string, PluginFactory *> m_router;

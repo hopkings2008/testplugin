@@ -26,12 +26,13 @@ void StoragePlugin::handleReadRequestHeadersPreRemap(atscppapi::Transaction &txn
 		txn.resume();
 		return;
 	}
-	PluginFactory *factory = m_router.match(path);
-	if(!factory) {
+	PluginFactory *factory = NULL;
+	std::string root;
+       	if (0 != m_router.match(path, root, factory)){
 		txn.resume();
 		return;
 	}
-	txn.addPlugin(factory->create(txn));
+	txn.addPlugin(factory->create(root, path, txn));
 	txn.resume();
 }
 
