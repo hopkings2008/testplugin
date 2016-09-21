@@ -1,6 +1,6 @@
 #include <oss_response.h>
 
-OssResponse::OssResponse(atscppapi::Transaction &txn, atscppapi::HttpStatus status, const std::string &reason, const std::string &body):atscppapi::TransactionPlugin(txn), m_status(status), m_reason(reason), m_body(body){
+OssResponse::OssResponse(atscppapi::Transaction &txn, const std::string &body):atscppapi::TransactionPlugin(txn), m_body(body){
 	atscppapi::TransactionPlugin::registerHook(HOOK_READ_RESPONSE_HEADERS);
 	atscppapi::TransactionPlugin::registerHook(HOOK_SEND_RESPONSE_HEADERS);
 	if(m_status >= atscppapi:: HTTP_STATUS_BAD_REQUEST) 
@@ -15,6 +15,7 @@ void OssResponse::handleReadResponseHeaders(atscppapi::Transaction &txn) {
 	m_status = resp.getStatusCode();
 	//reset the body here.
 	if (m_status < atscppapi::HTTP_STATUS_MULTIPLE_CHOICES && m_status >= atscppapi::HTTP_STATUS_OK) {
+		txn.error(m_body);
 	}
 	txn.resume();
 }
