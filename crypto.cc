@@ -23,7 +23,11 @@ int Crypto::init(const std::string &key, const std::string &salt, const std::str
 		TSError(MODULE.c_str(), "failed to perform apr initialize, err: %s", getError().c_str());
 		return -1;
 	}
-    apr_pool_create(&m_pool, NULL);
+    rv = apr_pool_create(&m_pool, NULL);
+    if (rv != APR_SUCCESS) {
+        TSError(MODULE.c_str(), "failed to create pool, err: %s", getError().c_str());
+        return -1;
+    }
     rv = apr_crypto_init(m_pool);
     if (rv != APR_SUCCESS) {
         TSError(MODULE.c_str(), "failed to init pool, err: %s", getError().c_str());
@@ -80,7 +84,7 @@ int Crypto::encrypt(const std::string &plain, std::vector<unsigned char> &cipher
         return -1;
     }
     cipherTextLen += len;
-    cipher.reserve(cipherTextLen);
+    cipher.resize(cipherTextLen);
     memcpy(cipher.data(), cipherText, cipherTextLen);
     apr_crypto_block_cleanup(block);
     block = NULL;
@@ -115,7 +119,7 @@ int Crypto::decrypt(const std::vector<unsigned char> &cipher, std::string &plain
         return -1;
     }
     plainTextLen += len;
-    plain.reserve(plainTextLen+1);
+    plain.resize(plainTextLen+1);
     memcpy((char *)&plain[0], plainText, plainTextLen);
     apr_crypto_block_cleanup(block);
     block = NULL;
@@ -125,5 +129,5 @@ int Crypto::decrypt(const std::vector<unsigned char> &cipher, std::string &plain
 std::string Crypto::getError() const {
     const apu_err_t *result = NULL;
     apr_crypto_error(&result, m_ctx);
-    return result->reason ? result->reason:result->msg ? result->msg : "";
+    return std::string(result->reason ? result->reason:result->msg ? result->msg : "");
 }

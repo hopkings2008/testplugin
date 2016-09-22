@@ -36,6 +36,7 @@ func Auth(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		ErrMsg:  "",
 	}
 	b, _ := json.Marshal(u)
+	fmt.Printf("resp: %s\n", string(b))
 	fmt.Fprintf(w, "%s", string(b))
 	//w.WriteHeader(http.StatusOK)
 }

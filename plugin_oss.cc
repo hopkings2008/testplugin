@@ -55,6 +55,7 @@ std::string PluginOss::getClientDate(atscppapi::ClientRequest &req) {
 }
 
 std::string PluginOss::pathEncrypt(const Crypto &crypto, const Base64 &base64, const std::string &oss_path){
+    return oss_path;
     std::vector<unsigned char> cipher;
     int ret = crypto.encrypt(oss_path, cipher);
     if (ret != 0) {
@@ -65,6 +66,7 @@ std::string PluginOss::pathEncrypt(const Crypto &crypto, const Base64 &base64, c
 }
 
 std::string PluginOss::pathDecrypt(const Crypto &crypto, const Base64 &base64, const std::string &oss_path) {
+    return oss_path;
     std::vector<unsigned char> cipher = base64.decode(oss_path);
     std::string plain;
     if(cipher.size() == 0) {

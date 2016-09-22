@@ -10,7 +10,9 @@ OssAuth::~OssAuth() {
 
 std::string OssAuth::getAuth(const AuthHeader &header) {
     std::string sig = getAuthSig(header);
-    std::string auth = " OSS " + m_bucketInfo.ak + ":" +sig;
+    std::string oss = "OSS ";
+    std::string semi = ":";
+    std::string auth = oss + m_bucketInfo.ak + semi + sig;
     return auth;
 }
 

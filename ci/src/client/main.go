@@ -11,7 +11,7 @@ import (
 )
 
 func main() {
-	b, err := ioutil.ReadFile("/home/zouyu/work/mytest/pics/f3t.jpg")
+	b, err := ioutil.ReadFile("/home/zouyu/hopkings/pics/exif-orientation-examples/Landscape_3.jpg")
 	if err != nil {
 		fmt.Printf("failed to read file, err: %v\n", err)
 		return
@@ -26,9 +26,9 @@ func main() {
 	md5sum := h.Sum(nil)
 	filemd5 := base64.StdEncoding.EncodeToString(md5sum)
 	now := time.Now()
-	date := fmt.Sprintf("%2d, %s %4d %02d:%02d:%02d GMT\n", now.Day(), now.Month().String(), now.Year(), now.Hour(), now.Minute(), now.Second())
+	date := fmt.Sprintf("%2d, %s %4d %02d:%02d:%02d GMT", now.Day(), now.Month().String(), now.Year(), now.Hour(), now.Minute(), now.Second())
 	fr := bytes.NewReader(b)
-	url := "http://127.0.0.1:8080/v2/img/add_image/f3t.jpg"
+	url := "http://127.0.0.1:8080/v2/img/add_image/Landscape_3.jpg"
 	client := &http.Client{}
 	req, err := http.NewRequest("PUT", url, fr)
 	if err != nil {
