@@ -24,6 +24,4 @@ class Crypto {
 		std::string m_iv;
 };
 
-extern Crypto g_crypto;
-
 #endif

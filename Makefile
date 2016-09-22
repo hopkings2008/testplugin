@@ -8,7 +8,9 @@ AUTH=/home/zouyu/hopkings/cis_gw_ats_plugin/auth
 
 TARGET=libtest_plugin.so
 
-SOURCES=$(wildcard *.cc)
+DEPENDS=/home/zouyu/hopkings/cis_gw_ats_plugin/auth/auth_user.cc /home/zouyu/hopkings/cis_gw_ats_plugin/auth/jsoncpp.cc
+
+SOURCES=$(wildcard *.cc) $(DEPENDS)
 
 HEADERS=$(wildcard *.h)
 
@@ -18,13 +20,13 @@ CXXFLAGS=-I./include -I$(AUTH)/include -I/home/sq/include
 
 LDFLAGS=-shared -Wl,-rpath,/home/sq/lib
 
-GTEST_LIBS=-L/home/sq/lib
+GTEST_LIBS=-L/home/sq/lib -L/home/sq/lib/apr-util-1
 
-OBJS=$(patsubst %.cc,%.o,$(SOURCES))
+OBJS=$(notdir $(patsubst %.cc,%.o,$(SOURCES)))
 
 #LIBS=-Wl,-Bstatic -lgtest -lgmock -Wl,-Bdynamic -lstdc++ -lpthread -lc
 
-LIBS=-latscppapi -ltsutil -laprutil-1 -lapr-1 -lcrypto -lstdc++ -lpthread -lc
+LIBS=-latscppapi -ltsutil -laprutil-1 -lapr-1 -lcrypt -lstdc++ -lpthread -ldl
 
 all: $(TARGET)
 	@echo "build successfully. $(TARGET) has been generated."
@@ -36,6 +38,11 @@ $(TARGET): $(OBJS)
 %.o:%.cc
 	gcc $(CFLAGS) $(CXXFLAGS) -c -o $@ $<
 
+jsoncpp.o: /home/zouyu/hopkings/cis_gw_ats_plugin/auth/jsoncpp.cc
+	gcc $(CFLAGS) $(CXXFLAGS) -c -o $@ $<
+
+auth_user.o: /home/zouyu/hopkings/cis_gw_ats_plugin/auth/auth_user.cc
+	gcc $(CFLAGS) $(CXXFLAGS) -c -o $@ $<
 
 clean:
 	-@rm -rf $(OBJS) $(TARGET)

@@ -4,4 +4,6 @@
 
 extern atscppapi::Logger log;
 
+const static std::string MODULE="storage_plugin";
+
 #endif

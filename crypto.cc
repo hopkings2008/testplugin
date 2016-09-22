@@ -1,6 +1,8 @@
 #include <crypto.h>
 #include <log.h>
 
+Crypto g_crypto;
+
 Crypto::Crypto():m_pool(NULL), m_driver(NULL),
 	m_ctx(NULL), m_key(NULL) {
 }
@@ -18,30 +20,30 @@ int Crypto::init(const std::string &key, const std::string &salt, const std::str
     const apu_err_t *result = NULL;
 	rv = apr_initialize();
 	if(rv != APR_SUCCESS) {
-		LOG_ERROR(log, "failed to perform apr initialize, err: %s", getError().c_str());
+		TSError(MODULE.c_str(), "failed to perform apr initialize, err: %s", getError().c_str());
 		return -1;
 	}
     apr_pool_create(&m_pool, NULL);
     rv = apr_crypto_init(m_pool);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to init pool, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to init pool, err: %s", getError().c_str());
         return -1;
     }
     rv = apr_crypto_get_driver(&m_driver, "openssl", NULL, &result, m_pool);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to get driver, err: %s", result->msg);
+        TSError(MODULE.c_str(), "failed to get driver, err: %s", result->msg);
         return -1;
     }
 
     rv = apr_crypto_make(&m_ctx, m_driver, "engine=openssl", m_pool);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to get context, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to get context, err: %s", getError().c_str());
         return -1;
     }
 
     rv = apr_crypto_passphrase(&m_key, NULL, key.c_str(), key.length(), (unsigned char *)salt.c_str(), salt.length(), APR_KEY_AES_256, APR_MODE_CBC, 1, 4096, m_ctx, m_pool);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to create key, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to create key, err: %s", getError().c_str());
         return -1;
     }
 
@@ -60,21 +62,21 @@ int Crypto::encrypt(const std::string &plain, std::vector<unsigned char> &cipher
     const unsigned char *iv = (const unsigned char *)m_iv.c_str();
     rv = apr_crypto_block_encrypt_init(&block, &iv, m_key, &blockSize, m_pool);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to init cipher, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to init cipher, err: %s", getError().c_str());
         return -1;
     }
     if(!block || rv) {
-        LOG_ERROR(log, "failed to init cipher, block or rv is invalid.");
+        TSError(MODULE.c_str(), "failed to init cipher, block or rv is invalid.");
         return -1;
     }
     rv = apr_crypto_block_encrypt(&cipherText, &cipherTextLen, (const unsigned char*)plain.c_str(), plain.length(), block);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to encrypt, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to encrypt, err: %s", getError().c_str());
         return -1;
     }
     rv = apr_crypto_block_encrypt_finish(cipherText + cipherTextLen, &len, block);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to finish encrypt, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to finish encrypt, err: %s", getError().c_str());
         return -1;
     }
     cipherTextLen += len;
@@ -95,21 +97,21 @@ int Crypto::decrypt(const std::vector<unsigned char> &cipher, std::string &plain
     unsigned char *iv = (unsigned char *)m_iv.c_str();
     rv = apr_crypto_block_decrypt_init(&block, &blockSize, iv, m_key, m_pool);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to init decrypt cipher, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to init decrypt cipher, err: %s", getError().c_str());
         return -1;
     }
     if(!block || rv) {
-        LOG_ERROR(log, "failed to init decrypt cipher, block or rv is invalid.");
+        TSError(MODULE.c_str(), "failed to init decrypt cipher, block or rv is invalid.");
         return -1;
     }
     rv = apr_crypto_block_decrypt(&plainText, &plainTextLen, cipher.data(), cipher.size(), block);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to decrypt, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to decrypt, err: %s", getError().c_str());
         return -1;
     }
     rv = apr_crypto_block_decrypt_finish(plainText+plainTextLen, &len, block);
     if (rv != APR_SUCCESS) {
-        LOG_ERROR(log, "failed to finish decrypt, err: %s", getError().c_str());
+        TSError(MODULE.c_str(), "failed to finish decrypt, err: %s", getError().c_str());
         return -1;
     }
     plainTextLen += len;

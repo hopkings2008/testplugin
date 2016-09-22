@@ -2,6 +2,8 @@
 #include <plugin_oss.h>
 #include <atscppapi/shared_ptr.h>
 #include <auth_user.h>
+#include <oss_put.h>
+#include <oss_get.h>
 #include <log.h>
 
 PluginOss::PluginOss(atscppapi::Transaction &txn, const OSS_PARAM &param): atscppapi::TransactionPlugin(txn), m_obj(param.obj), m_bucket(param.bucket),
@@ -31,12 +33,20 @@ std::string PluginOss::getClientMethod(atscppapi::ClientRequest &req) {
 
 std::string PluginOss::getClientContentMd5(atscppapi::ClientRequest &req) {
 	atscppapi::Headers &hdrs = req.getHeaders();
-	return hdrs.values("Content-MD5");
+	std::string md5 = hdrs.values("Content-MD5");
+	if(md5.length() == 0) {
+		return "\n";
+	}
+	return md5;
 }
 
 std::string PluginOss::getClientContentType(atscppapi::ClientRequest &req) {
 	atscppapi::Headers &hdrs = req.getHeaders();
-	return hdrs.values("Content-Type");
+	std::string type = hdrs.values("Content-Type");
+	if(type.length() == 0){
+		return "\n";
+	}
+	return type;
 }
 
 std::string PluginOss::getClientDate(atscppapi::ClientRequest &req) {
@@ -48,7 +58,7 @@ std::string PluginOss::pathEncrypt(const Crypto &crypto, const Base64 &base64, c
     std::vector<unsigned char> cipher;
     int ret = crypto.encrypt(oss_path, cipher);
     if (ret != 0) {
-        LOG_ERROR(log, "failed to encrypt path: %s", oss_path.c_str()) ;
+        TSError(MODULE.c_str(), "failed to encrypt path: %s", oss_path.c_str()) ;
         return "";
     }
     return base64.encode(cipher);
@@ -63,7 +73,7 @@ std::string PluginOss::pathDecrypt(const Crypto &crypto, const Base64 &base64, c
     }
     int ret = crypto.decrypt(cipher, plain);
     if (ret != 0) {
-        LOG_ERROR(log, "failed to decrypt for invalid oss_path: %s", oss_path.c_str());
+        TSError(MODULE.c_str(), "failed to decrypt for invalid oss_path: %s", oss_path.c_str());
         return "";
     }
     return plain;
@@ -82,6 +92,11 @@ atscppapi::TransactionPlugin *PluginOssFactory::create(const std::string &root, 
 	param.bucket = m_bucket;
 	param.ak = m_ak;
 	param.sk = m_sk;
+	if (root == "v2/img/add_image") {
+		return new OssPut(txn, param);
+	} else if (root == "v2/img/get_image") {
+		return new OssGet(txn, param);
+	}
 	return new PluginOss(txn, param);
 }
 

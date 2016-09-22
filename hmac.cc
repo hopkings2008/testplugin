@@ -10,7 +10,7 @@ Hmac::~Hmac() {
 std::vector<unsigned char> Hmac::sha1(const std::string &input) {
     std::vector<unsigned char> out;
     unsigned int len = 20;
-    out.reserve(len);
+    out.resize(len);
     HMAC_CTX ctx;
     HMAC_CTX_init(&ctx);
     HMAC_Init_ex(&ctx, m_key.c_str(), m_key.length(), EVP_sha1(), NULL);
