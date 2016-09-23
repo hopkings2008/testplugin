@@ -36,8 +36,16 @@ void OssPut::handleSendRequestHeaders(atscppapi::Transaction &txn) {
 	atscppapi::Request &reqSrv = txn.getServerRequest();
 	atscppapi::Headers &hdrsSrv = reqSrv.getHeaders();
 	atscppapi::Url &urlSrv = reqSrv.getUrl();
-	urlSrv.setPath(resource);
-	hdrsSrv.set("Authorization", authStr);
+
+	std::ostringstream newpath;
+	std::string oldPath = urlSrv.getPath();
+	std::string root;
+	size_t end = oldPath.find(m_obj);
+	root = oldPath.substr(0, end);
+	newpath << root << user.uid << "/" << m_obj;
+	urlSrv.setPath(newpath.str());
+
+	hdrsSrv.set("Authorization", authStr.c_str());
 	//encrypt return url here. and hook response.
 	Base64 base64;
 	std::string resourceEnc = pathEncrypt(g_crypto, base64, path.str());
