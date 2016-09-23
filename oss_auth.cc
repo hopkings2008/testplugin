@@ -17,7 +17,7 @@ std::string OssAuth::getAuth(const AuthHeader &header) {
 }
 
 std::string OssAuth::getAuthSig(const AuthHeader &header) {
-    std::string data = header.method + std::string("\n") + header.contentMd5 + std::string("\n") + header.contentType + std::string("\n");
+    std::string data = header.method + std::string("\n") + header.contentMd5 + std::string("\n") + header.contentType + std::string("\n") + header.date + std::string("\n");
     if(header.ossHeaders.length() != 0)
         data += header.ossHeaders + std::string("\n");
     data += header.resource;

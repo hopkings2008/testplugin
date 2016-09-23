@@ -48,9 +48,9 @@ void OssPut::handleSendRequestHeaders(atscppapi::Transaction &txn) {
 	hdrsSrv.set("Authorization", authStr.c_str());
 	//encrypt return url here. and hook response.
 	Base64 base64;
-	std::string resourceEnc = pathEncrypt(g_crypto, base64, path.str());
+	std::string resourceEnc = pathEncrypt(g_crypto, base64, resource);
 	if(resourceEnc.length() == 0) {
-		TSError(MODULE.c_str(), "failed to encrypt path %s", path.str().c_str());
+		TSError(MODULE.c_str(), "failed to encrypt path %s", resource.c_str());
 		OssResponse *resp = new OssResponse(OSS_GET, txn, "invalid path.");
 		resp->setStatus(atscppapi::HTTP_STATUS_BAD_REQUEST);
 		resp->setReasonPhase("Bad Request");

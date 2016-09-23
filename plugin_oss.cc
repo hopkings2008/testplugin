@@ -35,7 +35,7 @@ std::string PluginOss::getClientContentMd5(atscppapi::ClientRequest &req) {
 	atscppapi::Headers &hdrs = req.getHeaders();
 	std::string md5 = hdrs.values("Content-MD5");
 	if(md5.length() == 0) {
-		return "\n";
+		return "";
 	}
 	return md5;
 }
@@ -44,7 +44,7 @@ std::string PluginOss::getClientContentType(atscppapi::ClientRequest &req) {
 	atscppapi::Headers &hdrs = req.getHeaders();
 	std::string type = hdrs.values("Content-Type");
 	if(type.length() == 0){
-		return "\n";
+		return "";
 	}
 	return type;
 }
