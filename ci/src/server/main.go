@@ -7,10 +7,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/julienschmidt/httprouter"
+	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -36,15 +38,16 @@ func Auth(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		ErrMsg:  "",
 	}
 	b, _ := json.Marshal(u)
-	fmt.Printf("resp: %s\n", string(b))
 	fmt.Fprintf(w, "%s", string(b))
 	//w.WriteHeader(http.StatusOK)
 }
 
-func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func Upload(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Printf("received req: %v\n", r)
+	cwd, _ := os.Getwd()
 	aks := make(map[string]string)
 	aks["testak"] = "testsk"
+	fmt.Printf("file: %s\n", ps.ByName("file"))
 	authstr := r.Header["Authorization"]
 	if authstr == nil {
 		fmt.Printf("no auth.\n")
@@ -67,7 +70,7 @@ func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	oss := temp[1]
+	oss := temp[0]
 	if oss != "OSS" {
 		fmt.Printf("no OSS.\n")
 		//w.Write([]byte("no OSS"))
@@ -86,6 +89,9 @@ func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	md5str := ""
 	tt := ""
 	md5s := r.Header["Content-MD5"]
+	if md5s == nil {
+		md5s = r.Header["Content-Md5"]
+	}
 	if md5s != nil {
 		md5str = md5s[0]
 	}
@@ -99,7 +105,7 @@ func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		date = ds[0]
 	}
 	method := r.Method
-	resource := r.URL.Path
+	resource := ps.ByName("file")
 	hash := hmac.New(sha1.New, []byte(sk))
 	hstr := fmt.Sprintf("%s\n%s\n%s\n%s\n%s", method, md5str, tt, date, resource)
 	hash.Write([]byte(hstr))
@@ -114,18 +120,22 @@ func Upload(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 
 	//calculte the sig from request.
 	b, err := ioutil.ReadAll(r.Body)
-	err = ioutil.WriteFile("./"+resource, b, os.ModePerm)
+	fp := strings.Replace(resource, "/", "_", -1)
+	towritefile := filepath.Join(cwd, fp)
+	err = ioutil.WriteFile(towritefile, b, os.ModePerm)
 	if err != nil {
 		fmt.Printf("failed to write %s, err: %v\n", resource, err)
 		//w.Write([]byte(fmt.Sprintf("failed to write %s, err: %v\n", resource, err)))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	fmt.Printf("succeed to write: %s\n", towritefile)
 	w.WriteHeader(http.StatusOK)
 }
 
-func Download(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+func Download(w http.ResponseWriter, r *http.Request, ps httprouter.Params) {
 	fmt.Printf("got download req: %v\n", r)
+	cwd, _ := os.Getwd()
 	aks := make(map[string]string)
 	aks["testak"] = "testsk"
 	authstr := r.Header["Authorization"]
@@ -150,7 +160,7 @@ func Download(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	oss := temp[1]
+	oss := temp[0]
 	if oss != "OSS" {
 		fmt.Printf("no OSS.\n")
 		//w.Write([]byte("no OSS"))
@@ -182,11 +192,13 @@ func Download(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		date = ds[0]
 	}
 	method := r.Method
-	resource := r.URL.Path
+	resource := ps.ByName("file")
+	resource = strings.Replace(resource, "//", "/", -1)
 	hash := hmac.New(sha1.New, []byte(sk))
 	hstr := fmt.Sprintf("%s\n%s\n%s\n%s\n%s", method, md5str, tt, date, resource)
 	hash.Write([]byte(hstr))
 	mac := hash.Sum(nil)
+	fmt.Printf("hstr: %s\n", hstr)
 	final := base64.StdEncoding.EncodeToString(mac)
 	if final != sig {
 		fmt.Printf("sig: %s, final: %s\n", sig, final)
@@ -195,11 +207,27 @@ func Download(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 		return
 	}
 
-	b, err := ioutil.ReadFile("." + resource)
+	fp := strings.Replace(resource, "/", "_", -1)
+	toreadfile := filepath.Join(cwd, fp)
+	fi, err := os.Open(toreadfile)
 	if err != nil {
-		fmt.Printf("failed to read %s, err: %v\n", resource, err)
+		fmt.Printf("failed to open %s, err: %v\n", toreadfile, err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	defer fi.Close()
+	fs, err := fi.Stat()
+	if err != nil {
+		fmt.Printf("failed to stat %s, err: %v\n", toreadfile, err)
 		//w.Write([]byte(fmt.Sprintf("failed to read %s, err: %v\n", resource, err)))
-		w.WriteHeader(http.StatusBadRequest)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	b := make([]byte, fs.Size())
+	_, err = io.ReadFull(fi, b)
+	if err != nil {
+		fmt.Printf("failed to read %s, err: %v\n", toreadfile, err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	w.Write(b)
@@ -212,8 +240,8 @@ func main() {
 	router.GET("/", Index)
 	router.GET("/hello/:name", Hello)
 	router.POST("/v1/user/authorize", Auth)
-	router.PUT("/oss/upload", Upload)
-	router.GET("/oss/download", Download)
+	router.PUT("/oss/upload/*file", Upload)
+	router.GET("/oss/download/*file", Download)
 
 	log.Fatal(http.ListenAndServe(":9091", router))
 }
