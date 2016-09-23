@@ -39,9 +39,9 @@ int Crypto::init(const std::string &key, const std::string &salt, const std::str
         return -1;
     }
 
-    rv = apr_crypto_make(&m_ctx, m_driver, "engine=openssl", m_pool);
-    if (rv != APR_SUCCESS) {
-        TSError(MODULE.c_str(), "failed to get context, err: %s", getError().c_str());
+    apr_crypto_make(&m_ctx, m_driver, "engine=openssl", m_pool);
+    if (!m_ctx) {
+        TSError(MODULE.c_str(), "failed to get context.");
         return -1;
     }
 

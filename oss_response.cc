@@ -1,3 +1,4 @@
+#include <sstream>
 #include <oss_response.h>
 
 OssResponse::OssResponse(const OssMethod &method, atscppapi::Transaction &txn, const std::string &body):atscppapi::TransactionPlugin(txn), 
@@ -24,6 +25,13 @@ void OssResponse::handleReadResponseHeaders(atscppapi::Transaction &txn) {
 			m_reason = resp.getReasonPhrase();
 			//reset the body here.
 			if (m_status < atscppapi::HTTP_STATUS_MULTIPLE_CHOICES && m_status >= atscppapi::HTTP_STATUS_OK) {
+				if (m_body.length() > 0 ){
+					atscppapi::Headers &hdr = resp.getHeaders();
+					hdr.set("Content-Type", "application/json");
+					std::ostringstream length;
+					length << m_body.length();
+					hdr.set("Content-Length", length.str());
+				}
 				txn.error(m_body);
 				return;
 			}

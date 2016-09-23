@@ -19,6 +19,7 @@ std::vector<unsigned char> Base64::decode(const std::string &input) const {
     int len = apr_base64_decode_len(input.c_str());
     std::vector<unsigned char> out;
     out.resize(len);
-    apr_base64_encode((char *)out.data(), input.c_str(), input.length());
+    int ret = apr_base64_decode((char *)out.data(), input.c_str());
+    out.resize(ret);
    return out; 
 }

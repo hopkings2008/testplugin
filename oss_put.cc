@@ -58,7 +58,7 @@ void OssPut::handleSendRequestHeaders(atscppapi::Transaction &txn) {
 		txn.error("failed to encrypt path");
 		return;
 	}
-	std::string respBody = std::string("{\"url_path\": \"") + resourceEnc + std::string("\"}");
-	txn.addPlugin(new OssResponse(OSS_PUT, txn, respBody));
+	std::string respBody = std::string("{\"url_path\": \"") + std::string(resourceEnc.c_str()) + std::string("\"}");
+	txn.addPlugin(new OssResponse(OSS_PUT, txn, respBody.c_str()));
 	txn.resume();
 }
