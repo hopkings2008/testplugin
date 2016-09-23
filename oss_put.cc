@@ -41,6 +41,11 @@ void OssPut::handleSendRequestHeaders(atscppapi::Transaction &txn) {
 	std::string oldPath = urlSrv.getPath();
 	std::string root;
 	size_t end = oldPath.find(m_obj);
+    if (end == std::string::npos) {
+        TSDebug(MODULE.c_str(), "the path %s doesn't match %s, skip it.", oldPath.c_str(), m_obj.c_str());
+        txn.resume();
+        return;
+    }
 	root = oldPath.substr(0, end);
 	newpath << root << user.uid << "/" << m_obj;
 	urlSrv.setPath(newpath.str());

@@ -8,7 +8,7 @@ AUTH=/home/zouyu/hopkings/cis_gw_ats_plugin/auth
 
 TARGET=libtest_plugin.so
 
-DEPENDS=/home/zouyu/hopkings/cis_gw_ats_plugin/auth/auth_user.cc /home/zouyu/hopkings/cis_gw_ats_plugin/auth/jsoncpp.cc
+DEPENDS=$(AUTH)/auth_user.cc $(AUTH)/jsoncpp.cc
 
 SOURCES=$(wildcard *.cc) $(DEPENDS)
 

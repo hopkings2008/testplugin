@@ -15,9 +15,9 @@ StoragePlugin::~StoragePlugin() {
 int StoragePlugin::init() {
 	OSS_PARAM param = {
 		"",
-		"bucket",
-		"testak",
-		"testsk",
+		"test-kv1-pub.oss-cn-beijing.aliyuncs.com",
+		"pEJjKPn6jCWKw5VF",
+		"syZb1xhzwHitwql1dcJJR8Ahxito4x",
 	};
 	m_router.addRoute("v2/img/add_image", new PluginOssFactory(param));
 	m_router.addRoute("v2/img/get_image", new PluginOssFactory(param));
