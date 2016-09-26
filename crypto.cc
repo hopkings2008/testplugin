@@ -1,8 +1,6 @@
 #include <crypto.h>
 #include <log.h>
 
-Crypto g_crypto;
-
 Crypto::Crypto():m_pool(NULL), m_driver(NULL),
 	m_ctx(NULL), m_key(NULL) {
 }
@@ -121,6 +119,7 @@ int Crypto::decrypt(const std::vector<unsigned char> &cipher, std::string &plain
     plainTextLen += len;
     plain.resize(plainTextLen+1);
     memcpy((char *)&plain[0], plainText, plainTextLen);
+    plain[plain.length()] = 0;
     apr_crypto_block_cleanup(block);
     block = NULL;
     return 0;

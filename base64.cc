@@ -10,8 +10,9 @@ Base64::~Base64(){
 std::string Base64::encode(const std::vector<unsigned char> &input) const {
     int len = apr_base64_encode_len(input.size());
     std::string out;
-    out.resize(len);
+    out.resize(len+1);
     apr_base64_encode(&out[0],(const char *)input.data(), input.size());
+    out[out.length()] = 0;
     return out;
 }
 
